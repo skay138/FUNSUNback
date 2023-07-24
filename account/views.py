@@ -10,11 +10,12 @@ from django.http import response
 from .models import Account
 import requests
 
+from config.util import Verify
+
 
 # Create your views here.
 
 class AccountSerializer(serializers.ModelSerializer):
-
     class Meta :
         model = Account
         fields = '__all__'
@@ -24,7 +25,10 @@ class KakaoRequestSerializer(serializers.Serializer):
 
 
 class AccountView(APIView):
-    @swagger_auto_schema(tags=['kakaoLogin'], operation_description='testing', request_body=KakaoRequestSerializer , responses={"200":"login", "201":"SignUp","400": "no token","404":"invalid token"})
+    id = openapi.Parameter('id', openapi.IN_QUERY, type=openapi.TYPE_STRING, default=2919921020)
+
+
+    @swagger_auto_schema(operation_description='testing', request_body=KakaoRequestSerializer)
     def post(self, request):
         try:
             token = request.data['accessToken']
@@ -48,21 +52,52 @@ class AccountView(APIView):
         except :
             return response.HttpResponse(status=404)
 
-
-        if (Account.objects.get(id=userData["id"])):
+        try :
             user = Account.objects.get(id=userData["id"])
             serializer = AccountSerializer(user)
             return response.JsonResponse(serializer.data, status=200)
-        else :
+        except Account.DoesNotExist :
             account = Account.objects.create_user(userData=userData)
             serializer = AccountSerializer(account)
             return response.JsonResponse(serializer.data, status=201)
         
+        
+    @swagger_auto_schema(manual_parameters=[id], operation_description='GET USER INFO')
     def get(self, request):
-        userid = request.GET.get('uid')
-        try :
-            profile = Account.objects.get(id=userid)
-            serializer = AccountSerializer(profile)
-            return response.JsonResponse(serializer.data, status=200)
-        except:
+        account = Verify.account(request=request)
+        if(type(account)==response.HttpResponse):
+            return account
+        
+        serializer = AccountSerializer(account)
+        return response.JsonResponse(serializer.data, status=200)
+        
+    @swagger_auto_schema(operation_description='testing', request_body=AccountSerializer , responses={"200":"login", "201":"SignUp","400": "no token","404":"invalid token"})
+    def put(self, request):
+        userid = request.data.get('id')
+
+        profile = Account.objects.get(id=userid)
+        
+        for keys in request.data:
+            if hasattr(profile, keys)== True:
+                if keys == 'is_admin':
+                    pass
+                setattr(profile, keys, request.data[keys])
+        profile.save()
+        serializer = AccountSerializer(profile)
+        return response.JsonResponse(serializer.data, status=200)
+    
+    @swagger_auto_schema(request_body=AccountSerializer)
+    def delete(self, request):
+        if(request.data.get('id')):
+            userid = request.data.get('id')
+            try :
+                profile = Account.objects.get(id=userid)
+                profile.delete()
+                return response.HttpResponse(status=200)
+            except:
+                return response.HttpResponse(status=300)
+        else:
             return response.HttpResponse(status=404)
+        
+
+

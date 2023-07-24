@@ -37,5 +37,7 @@ class Account(AbstractBaseUser):
 
     objects = FunSunUserManager()
 
-    USERNAME_FIELD = 'nickname'
-    REQUIRED_FIELDS = ['nickname']
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['id']
+
+

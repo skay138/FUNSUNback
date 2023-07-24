@@ -46,7 +46,11 @@ INSTALLED_APPS = [
 
     ##My APPS
     'account',
+    'funding',
+    'remit',
+    'follow',
 ]
+AUTH_USER_MODEL = 'account.Account'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

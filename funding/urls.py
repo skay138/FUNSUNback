@@ -20,5 +20,5 @@ from django.urls import path, include
 
 
 urlpatterns = [
-    path('/kakaologin', views.AccountView.as_view())
+    path('', views.FundingView.as_view())
 ]

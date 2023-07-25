@@ -18,7 +18,15 @@ from django.contrib import admin
 from . import views
 from django.urls import path, include
 
+from rest_framework_simplejwt.views import (
+    TokenRefreshView,
+)
+
 
 urlpatterns = [
-    path('/kakaologin', views.AccountView.as_view())
+    path('kakaologin', views.KakaoLogin.as_view()),
+    path('', views.AccountView.as_view()),
+    # path('/token', views.TokenView.as_view(), name='token_obtain_pair'),
+    path('token/refresh', TokenRefreshView.as_view(), name='token_refresh'),
+    
 ]

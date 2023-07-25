@@ -1,37 +1,45 @@
 from account.models import Account
 from funding.models import Funding
 from remit.models import Remit
-from django.http import response
 
+from rest_framework_simplejwt.authentication import JWTStatelessUserAuthentication
 
-class Verify():
+from rest_framework.exceptions import APIException, ValidationError
+
+from .exceptions import JwtException, NoContentException
+
+class Verify(JWTStatelessUserAuthentication):
+
+    def jwt(self, request):
+        print('start verify')
+        if(request.headers.get("Authorization")):
+            user = JWTStatelessUserAuthentication.authenticate(self, request=request)
+            if(user):
+                print(user)
+                return user[0]
+            else:
+                raise JwtException(detail='unknown Token')
+        else:
+            raise JwtException(detail="NO ACCESS TOKEN")
+            
+
     def account(request):
+        print("start")
         if(request.GET.get('id')):
             try:
                 account = Account.objects.get(id=request.GET.get('id'))
             except Account.DoesNotExist:
-                return response.HttpResponse(status=410)
+                raise NoContentException(detail="can't find user")
             return account
-        
         elif(request.data.get('id')):
             try :
                 account = Account.objects.get(id=request.data.get('id'))
             except Account.DoesNotExist:
-                return response.HttpResponse(status=410)
+                raise NoContentException(detail="can't find user")
             return account
         else:
-            return response.HttpResponse(status=404)
+            raise ValidationError(detail='bad request')
 
-
-    def author(request):
-        try:
-            author = Account.objects.get(id=request.data.get('author'))
-        except Account.DoesNotExist:
-            return response.HttpResponse(status=410)
-        except:
-            return response.HttpResponse(status=404)
-        
-        return author
     
 
     def funding(request):
@@ -39,17 +47,17 @@ class Verify():
             try:
                 funding = Funding.objects.get(id=request.GET.get('id'))
             except Funding.DoesNotExist:
-                return response.HttpResponse(status=420)
+                raise NoContentException(detail="can't find funding")
             return funding
         
         elif(request.data.get('id')):
             try :
                 funding = Funding.objects.get(id=request.data.get('id'))
             except Funding.DoesNotExist:
-                return response.HttpResponse(status=420)
+                raise NoContentException(detail="can't find funding")
             return funding
         else:
-            return response.HttpResponse(status=404)
+            raise ValidationError(detail='bad request')
         
     
     def remit(request):
@@ -57,14 +65,14 @@ class Verify():
             try:
                 remit = Remit.objects.get(id=request.GET.get('id'))
             except Remit.DoesNotExist:
-                return response.HttpResponse(status=420)
+                raise NoContentException(detail="can't find remit")
             return remit
         
         elif(request.data.get('id')):
             try :
                 remit = Remit.objects.get(id=request.data.get('id'))
             except Remit.DoesNotExist:
-                return response.HttpResponse(status=420)
+                raise NoContentException(detail="can't find remit")
             return remit
         else:
-            return response.HttpResponse(status=404)
+            raise ValidationError(detail='bad request')

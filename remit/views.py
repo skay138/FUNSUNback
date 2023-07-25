@@ -8,13 +8,14 @@ from drf_yasg             import openapi
 
 
 from django.http import response
-from .models import Remit
+from .models import Remit, Account, Funding
 # Create your views here.
 
 from config.util import Verify
+from rest_framework_simplejwt.authentication import JWTStatelessUserAuthentication
 
 
-class FundingSerializer(serializers.ModelSerializer):
+class RemitSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Remit
@@ -22,25 +23,26 @@ class FundingSerializer(serializers.ModelSerializer):
 
 
 
-class RemitView(APIView):
-    #Funding id로 게시물 찾기
+class RemitView(APIView, JWTStatelessUserAuthentication):
+    id = openapi.Parameter('id', openapi.IN_QUERY, type=openapi.TYPE_STRING, default=1)
+    #Funding id로 송금데이터 가져오기
+    @swagger_auto_schema(manual_parameters=[id], operation_description='GET Remits INFO')
     def get(self, request):
         funding = Verify.funding(request=request)
-        if(type(funding)==response.HttpResponse):
-            return funding
         remits = Remit.objects.filter(funding=funding)
-        serializer = FundingSerializer(remits, many=True)
-        return response.JsonResponse(serializer.data, status=200)
+        serializer = RemitSerializer(remits, many=True)
+        return response.JsonResponse(serializer.data,safe=False, status=200)
 
     #생성
+    @swagger_auto_schema(operation_description='testing', request_body=RemitSerializer)
     def post(self, request):
-        author = Verify.author(request=request)
-        if(type(author)==response.HttpResponse):
-            return author
-
+        author = Verify.jwt(self, request=request)
+        fundingObj = Funding.objects.get(id=request.data.get('funding'))
+        amount = int(request.data.get('amount'))
         remit = Remit.objects.create(
-            amount=int(request.data.get('amount')),
-            author=author
+            amount= amount,
+            author=Account.objects.get(id=author.id),
+            funding = fundingObj
         )
         
         for keys in request.data:
@@ -49,21 +51,21 @@ class RemitView(APIView):
                     pass
                 elif(keys == 'author'):
                     pass
+                elif(keys == 'funding'):
+                    pass
                 else:
                     setattr(remit, keys, request.data[keys])
         remit.save()
-        serializer = FundingSerializer(remit)
+        fundingObj.current_amount += amount
+        fundingObj.save()
+        serializer = RemitSerializer(remit)
         return response.JsonResponse(serializer.data, status=200)
 
     def put(self, request):
-        author = Verify.author(request=request)
-        if(type(author)==response.HttpResponse):
-            return author
+        author = Verify.jwt(request=request)
         remit = Verify.remit(request=request)
-        if(type(remit)==response.HttpResponse):
-            return remit
-
-        if(remit.author == author):
+  
+        if(remit.author.id == author.id):
             remit.message = request.data.get('message')
             remit.save()
             return response.HttpResponse(status=200)
@@ -72,15 +74,10 @@ class RemitView(APIView):
         
     #삭제
     def delete(self, request):
-
-        author = Verify.author(request=request)
-        if(type(author)==response.HttpResponse):
-            return author
+        author = Verify.jwt(request=request)
         remit = Verify.remit(request=request)
-        if(type(remit)==response.HttpResponse):
-            return remit
 
-        if(remit.author == author):
+        if(remit.author.id == author.id):
             remit.delete()
             return response.HttpResponse(status=200)
         else:

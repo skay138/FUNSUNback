@@ -20,5 +20,8 @@ from django.urls import path, include
 
 
 urlpatterns = [
-    path('', views.FundingView.as_view())
+    path('', views.FundingView.as_view()),
+    path('following', views.GetFollowFunding.as_view()),
+    path('joined', views.GetJoinedFunding.as_view()),
+    path('public', views.GetJoinedFunding.as_view()),
 ]

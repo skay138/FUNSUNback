@@ -2,7 +2,7 @@ from rest_framework.exceptions import APIException
 
 
 class JwtException(APIException):
-    status_code = 400
+    status_code = 401
     default_detail = 'NO ACCESS TOKEN'
 
 

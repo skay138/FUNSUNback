@@ -4,9 +4,15 @@ from remit.models import Remit
 
 from rest_framework_simplejwt.authentication import JWTStatelessUserAuthentication
 
-from rest_framework.exceptions import APIException, ValidationError
+from rest_framework.exceptions import ValidationError
 
 from .exceptions import JwtException, NoContentException
+
+#image upload
+from django.core.files.storage import FileSystemStorage
+from django.conf import settings
+import os
+
 
 class Verify(JWTStatelessUserAuthentication):
 
@@ -15,7 +21,7 @@ class Verify(JWTStatelessUserAuthentication):
         if(request.headers.get("Authorization")):
             user = JWTStatelessUserAuthentication.authenticate(self, request=request)
             if(user):
-                print(user)
+                print(user[0])
                 return user[0]
             else:
                 raise JwtException(detail='unknown Token')
@@ -76,3 +82,22 @@ class Verify(JWTStatelessUserAuthentication):
             return remit
         else:
             raise ValidationError(detail='bad request')
+        
+
+class OverwriteStorage(FileSystemStorage):
+
+    def get_available_name(self, name, max_length=None):
+        # If the filename already exists, remove it as if it was a true file system
+        
+        if self.exists(name):
+            os.remove(os.path.join(settings.MEDIA_ROOT, name))
+        return name
+
+
+def image_upload(id):
+    path = 'profile_image/'
+    return f'{path}{id}.png'
+
+def funding_image_upload(id):
+    path = 'funding_image/'
+    return f'{path}{id}.png'

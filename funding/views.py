@@ -10,9 +10,11 @@ from rest_framework_simplejwt.authentication import JWTStatelessUserAuthenticati
 
 from django.http import response
 from .models import Funding, Account
+from remit.models import Remit
+from follow.models import Follow
 # Create your views here.
 
-from config.util import Verify
+from config.util import OverwriteStorage, Verify, funding_image_upload
 
 
 class FundingSerializer(serializers.ModelSerializer):
@@ -53,6 +55,11 @@ class FundingView(APIView, JWTStatelessUserAuthentication):
                         pass
                     elif(keys == 'author'):
                         pass
+                    elif(keys == 'current_amount'):
+                        pass
+                    elif keys == 'image' and request.FILES.get('image'):
+                        data_image = request.FILES.get('image')
+                        setattr(funding, keys, OverwriteStorage().save(funding_image_upload(funding.id), data_image))
                     else:
                         setattr(funding, keys, request.data[keys])
             funding.save()
@@ -74,6 +81,11 @@ class FundingView(APIView, JWTStatelessUserAuthentication):
                         pass
                     elif(keys == 'current_amount'):
                         pass
+                    elif(keys == 'expire_on'):
+                        pass
+                    elif keys == 'image' and request.FILES.get('image'):
+                        data_image = request.FILES.get('image')
+                        setattr(funding, keys, OverwriteStorage().save(funding_image_upload(funding.id), data_image))
                     else:
                         setattr(funding, keys, request.data[keys])
             funding.save()
@@ -91,3 +103,27 @@ class FundingView(APIView, JWTStatelessUserAuthentication):
             return response.HttpResponse(status=200)
         else:
             return response.JsonResponse({"detail":"bad request"},status=400)
+        
+
+
+class GetFollowFunding(APIView, JWTStatelessUserAuthentication):
+    def get(self, request):
+        user = Verify.jwt(self, request=request)
+        followee = Follow.objects.filter(follower = user.id).values('followee')
+        fundings = Funding.objects.filter(author__in = followee)
+        serializer = FundingSerializer(fundings, many=True)
+        return response.JsonResponse(serializer.data, safe=False, status=200)
+    
+
+class GetJoinedFunding(APIView, JWTStatelessUserAuthentication):
+    def get(self, request):
+        user = Verify.jwt(self, request=request)
+        funding_ids = Remit.objects.filter(author_id = user.id).values('funding').distinct()
+        fundings = Funding.objects.filter(id__in = funding_ids)
+        serializer = FundingSerializer(fundings, many=True)
+        return response.JsonResponse(serializer.data, safe=False, status=200)
+
+
+class GetPublicFunding(APIView, JWTStatelessUserAuthentication):
+    def get(self, request):
+        uer = Verify.jwt(self, request=request)

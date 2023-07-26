@@ -26,7 +26,8 @@ from rest_framework_simplejwt.views import (
 urlpatterns = [
     path('kakaologin', views.KakaoLogin.as_view()),
     path('', views.AccountView.as_view()),
-    # path('/token', views.TokenView.as_view(), name='token_obtain_pair'),
+    path('search', views.ProfileSearch.as_view()),
+    path('token', views.GetToken.as_view(), name='token_obtain_pair'),
     path('token/refresh', TokenRefreshView.as_view(), name='token_refresh'),
     
 ]

@@ -17,6 +17,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include, re_path
 
+#image preview
+from django.conf import settings  
+from django.conf.urls.static import static  
+
 ##swagger
 from rest_framework.permissions import AllowAny
 from drf_yasg.views import get_schema_view 
@@ -31,7 +35,7 @@ schema_view_v1 = get_schema_view(
     openapi.Info(
         title="FUNSUN BACKEND APIS",
         default_version='v1',
-        description="THIS IS FUNSUN BACKEND API TEST PAGE",
+        description="THIS IS FUNSUN BACKEND API TEST PAGE\n<h2>HTTP STATUS CODE</h2>200 : 성공\n201 : 성공 및 생성\n 204 : 일치하는 데이터 없음\n 400 : 잘못된 요청\n 401 : 미인증\n\n\{'detail' : '상세 내용'}",
         #terms_of_service="https://www.google.com/policies/terms/",
     ),
     public=True,
@@ -49,3 +53,7 @@ urlpatterns = [
     re_path(r'^swagger/$', schema_view_v1.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     re_path(r'^redoc/$', schema_view_v1.with_ui('redoc', cache_timeout=0), name='schema-redoc')
 ]
+
+
+if settings.DEBUG:  # new
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

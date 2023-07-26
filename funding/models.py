@@ -1,6 +1,9 @@
 from django.db import models
 from account.models import Account
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils import timezone
+from datetime import timedelta
+from django.contrib.auth import get_user_model
 
 # Create your models here.
 
@@ -15,6 +18,8 @@ class Funding(models.Model):
     current_amount = models.IntegerField(default=0)
     #작성자
     author = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='Funding')
+    #종료일
+    expire_on = models.DateTimeField(auto_now_add=False, null=False, default=(timezone.now()+timedelta(days=30)))
     #작성날짜
     created_on = models.DateTimeField(auto_now_add=True)
     #수정날짜
@@ -22,6 +27,12 @@ class Funding(models.Model):
     #공개여부
     public = models.BooleanField(default=False)
     #이미지
-    img = models.TextField()
+    image = models.ImageField(
+        upload_to='funding_image/',
+        null=True
+    )
+
+    def __str__(self) -> str:
+        return f"{self.title}({self.author})"
     
 

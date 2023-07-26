@@ -4,6 +4,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, UserManager
 from datetime import datetime
 from django.contrib.auth.hashers import make_password
+from django.utils.html import mark_safe
 # Create your models here.
 
 
@@ -47,6 +48,10 @@ class Account(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=20)
     gender = models.CharField(max_length=6)
     age_range = models.CharField(max_length=5)
+    image = models.ImageField(
+        upload_to='profile_image/',
+        null=True
+    )
 
 
     class Meta:
@@ -57,7 +62,7 @@ class Account(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'id']
 
-    def getuserid(self):
-        return self.id
+    def __str__(self) -> str:
+        return f"{self.username}({self.id})"
 
 

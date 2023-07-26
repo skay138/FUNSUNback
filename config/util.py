@@ -13,6 +13,9 @@ from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 import os
 
+#paginator
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+
 
 class Verify(JWTStatelessUserAuthentication):
 
@@ -101,3 +104,39 @@ def image_upload(id):
 def funding_image_upload(id):
     path = 'funding_image/'
     return f'{path}{id}.png'
+
+
+
+def paging_funding(request, list):
+
+    page = request.GET.get('page')
+
+    paginator = Paginator(list, 8)
+
+    try:
+        page_obj = paginator.page(page)
+    except PageNotAnInteger:
+        page = 1
+        page_obj = paginator.page(page)
+    except EmptyPage:
+        raise NoContentException(detail="no more content")
+
+    return page_obj
+
+
+
+def paging_remit(request, list):
+
+    page = request.GET.get('page')
+
+    paginator = Paginator(list, 20)
+
+    try:
+        page_obj = paginator.page(page)
+    except PageNotAnInteger:
+        page = 1
+        page_obj = paginator.page(page)
+    except EmptyPage:
+        raise NoContentException(detail="no more content")
+
+    return page_obj

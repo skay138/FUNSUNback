@@ -8,13 +8,14 @@ from drf_yasg             import openapi
 #jwt
 from rest_framework_simplejwt.authentication import JWTStatelessUserAuthentication
 
+from django.db.models import Q
 from django.http import response
 from .models import Funding, Account
 from remit.models import Remit
 from follow.models import Follow
 # Create your views here.
 
-from config.util import OverwriteStorage, Verify, funding_image_upload
+from config.util import OverwriteStorage, Verify, funding_image_upload, paging_funding
 
 
 class FundingSerializer(serializers.ModelSerializer):
@@ -105,25 +106,66 @@ class FundingView(APIView, JWTStatelessUserAuthentication):
             return response.JsonResponse({"detail":"bad request"},status=400)
         
 
-
-class GetFollowFunding(APIView, JWTStatelessUserAuthentication):
+class GetMyFundings(APIView, JWTStatelessUserAuthentication):
+    page = openapi.Parameter('page', openapi.IN_QUERY, type=openapi.TYPE_STRING, default=1)
+    @swagger_auto_schema(manual_parameters=[page], operation_description='GET MY FUNDING')
     def get(self, request):
         user = Verify.jwt(self, request=request)
+        fundings = Funding.objects.filter(author_id = user.id).order_by('-id')
+        paginator = paging_funding(request=request, list=fundings)
+        serializer = FundingSerializer(paginator, many=True)
+        return response.JsonResponse(serializer.data, safe=False, status=200)
+    
+class GetUserFundings(APIView, JWTStatelessUserAuthentication):
+    page = openapi.Parameter('page', openapi.IN_QUERY, type=openapi.TYPE_STRING, default=1)
+    id = openapi.Parameter('id', openapi.IN_QUERY, type=openapi.TYPE_STRING, default='admin')
+    @swagger_auto_schema(manual_parameters=[page, id], operation_description='GET USER FUNDINGS')
+    def get(self, request):
+        user = Verify.jwt(self, request=request)
+        fundinguser = request.GET.get('id')
+        isFriend = Follow.objects.filter(follower = user.id, followee = fundinguser).count() & Follow.objects.filter(follower = fundinguser, followee=user.id).count()
+        fundings = Funding.objects.filter(author_id = fundinguser).order_by('-id') if isFriend else Funding.objects.filter(author_id = fundinguser, public=True).order_by('-id')
+        paginator = paging_funding(request=request, list=fundings)
+        serializer = FundingSerializer(paginator, many=True)
+        return response.JsonResponse(serializer.data, safe=False, status=200)
+
+class GetFollowFundings(APIView, JWTStatelessUserAuthentication):
+    page = openapi.Parameter('page', openapi.IN_QUERY, type=openapi.TYPE_STRING, default=1)
+    @swagger_auto_schema(manual_parameters=[page], operation_description='GET FOLLOW FUNDING')
+    def get(self, request):
+
+        user = Verify.jwt(self, request=request)
         followee = Follow.objects.filter(follower = user.id).values('followee')
-        fundings = Funding.objects.filter(author__in = followee)
-        serializer = FundingSerializer(fundings, many=True)
+        friend = Follow.objects.filter(followee = user.id , follower__in = followee).values('follower')
+        print(friend)
+        fundings = Funding.objects.filter(author__in = followee, public = True).order_by('-id') | Funding.objects.filter(author__in = friend, public=False).order_by('-id')
+        paginator = paging_funding(request=request, list=fundings)
+        serializer = FundingSerializer(paginator, many=True)
         return response.JsonResponse(serializer.data, safe=False, status=200)
     
 
-class GetJoinedFunding(APIView, JWTStatelessUserAuthentication):
+class GetJoinedFundings(APIView, JWTStatelessUserAuthentication):
+    page = openapi.Parameter('page', openapi.IN_QUERY, type=openapi.TYPE_STRING, default=1)
+    @swagger_auto_schema(manual_parameters=[page], operation_description='GET JOINED FUNDING')
     def get(self, request):
         user = Verify.jwt(self, request=request)
         funding_ids = Remit.objects.filter(author_id = user.id).values('funding').distinct()
-        fundings = Funding.objects.filter(id__in = funding_ids)
-        serializer = FundingSerializer(fundings, many=True)
+        fundings = Funding.objects.filter(id__in = funding_ids).order_by('-id')
+        paginator = paging_funding(request=request, list=fundings)
+        serializer = FundingSerializer(paginator, many=True)
         return response.JsonResponse(serializer.data, safe=False, status=200)
 
 
-class GetPublicFunding(APIView, JWTStatelessUserAuthentication):
+class GetPublicFundings(APIView, JWTStatelessUserAuthentication):
+    page = openapi.Parameter('page', openapi.IN_QUERY, type=openapi.TYPE_STRING, default=1)
+    @swagger_auto_schema(manual_parameters=[page], operation_description='GET PUBLIC FUNDING')
     def get(self, request):
-        uer = Verify.jwt(self, request=request)
+        Verify.jwt(self, request=request)
+        fundings = Funding.objects.filter(public = True).order_by('-id')
+        paginator = paging_funding(request=request, list=fundings)
+        serializer = FundingSerializer(paginator, many=True)
+        return response.JsonResponse(serializer.data, safe=False, status=200)
+    
+
+
+

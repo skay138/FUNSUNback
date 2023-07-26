@@ -11,7 +11,7 @@ from django.http import response
 from .models import Remit, Account, Funding
 # Create your views here.
 
-from config.util import Verify
+from config.util import Verify, paging_remit
 from rest_framework_simplejwt.authentication import JWTStatelessUserAuthentication
 
 
@@ -25,12 +25,14 @@ class RemitSerializer(serializers.ModelSerializer):
 
 class RemitView(APIView, JWTStatelessUserAuthentication):
     id = openapi.Parameter('id', openapi.IN_QUERY, type=openapi.TYPE_STRING, default=1)
+    page = openapi.Parameter('page', openapi.IN_QUERY, type=openapi.TYPE_STRING, default=1)
     #Funding id로 송금데이터 가져오기
-    @swagger_auto_schema(manual_parameters=[id], operation_description='GET Remits INFO')
+    @swagger_auto_schema(manual_parameters=[id, page], operation_description='GET Remits INFO')
     def get(self, request):
         funding = Verify.funding(request=request)
         remits = Remit.objects.filter(funding=funding)
-        serializer = RemitSerializer(remits, many=True)
+        paging = paging_remit(request=request, list=remits)
+        serializer = RemitSerializer(paging, many=True)
         return response.JsonResponse(serializer.data,safe=False, status=200)
 
     #생성

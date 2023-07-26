@@ -21,8 +21,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path('', views.FundingView.as_view()),
-    path('myfunding', views.GetMyFundings.as_view()),
-    path('userfunding', views.GetUserFundings.as_view()),
+    path('user', views.GetFundings.as_view()),
     path('following', views.GetFollowFundings.as_view()),
     path('joined', views.GetJoinedFundings.as_view()),
     path('public', views.GetJoinedFundings.as_view()),

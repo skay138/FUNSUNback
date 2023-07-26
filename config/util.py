@@ -129,7 +129,7 @@ def paging_remit(request, list):
 
     page = request.GET.get('page')
 
-    paginator = Paginator(list, 20)
+    paginator = Paginator(list, 8)
 
     try:
         page_obj = paginator.page(page)

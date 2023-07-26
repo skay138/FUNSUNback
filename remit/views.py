@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.shortcuts import render
+
 from rest_framework import serializers
 #Swagger
 from rest_framework.views import APIView

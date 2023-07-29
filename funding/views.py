@@ -8,7 +8,6 @@ from drf_yasg             import openapi
 #jwt
 from rest_framework_simplejwt.authentication import JWTStatelessUserAuthentication
 
-from django.db.models import Q
 from django.http import response
 from .models import Funding, Account
 from remit.models import Remit
@@ -18,12 +17,40 @@ from follow.models import Follow
 from config.util import OverwriteStorage, Verify, funding_image_upload, paging_funding
 
 
+class FundingDetailSerializer(serializers.ModelSerializer):
+
+    def getAuthor(self, obj):
+        id = obj.author.id
+        author = Account.objects.get(id = id)
+        profile = {
+            "id" : author.id,
+            "username" : author.username,
+            "image" : author.image.url
+        }
+        return profile
+    
+    
+    author = serializers.SerializerMethodField('getAuthor')
+
+    class Meta :
+        model = Funding
+        fields = ['id', 'title', 'content', 'goal_amount', 'current_amount', 'image', 'expire_on', 'created_on', 'public', 'author']
+
 class FundingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Funding
-        fields = '__all__'
+        fields = ['id', 'title','image', 'goal_amount', 'current_amount', 'expire_on']
 
+class FundingPostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Funding
+        fields = ['title', 'content', 'goal_amount', 'image', 'public', 'expire_on']
+
+class FundingPutSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Funding
+        fields = ['id', 'title', 'content', 'public', 'image', 'public']
 
 
 class FundingView(APIView, JWTStatelessUserAuthentication):
@@ -33,11 +60,11 @@ class FundingView(APIView, JWTStatelessUserAuthentication):
     def get(self, request):
         Verify.jwt(self, request=request)
         funding = Verify.funding(request=request)
-        serializer = FundingSerializer(funding)
+        serializer = FundingDetailSerializer(funding)
         return response.JsonResponse(serializer.data, status=200)
 
     #생성
-    @swagger_auto_schema(operation_description='testing', request_body=FundingSerializer)
+    @swagger_auto_schema(operation_description='testing', request_body=FundingPostSerializer)
     def post(self, request):
         author = Verify.jwt(self, request=request)
         goal_amount = int(request.data.get('goal_amount'))
@@ -64,11 +91,11 @@ class FundingView(APIView, JWTStatelessUserAuthentication):
                     else:
                         setattr(funding, keys, request.data[keys])
             funding.save()
-            serializer = FundingSerializer(funding)
+            serializer = FundingDetailSerializer(funding)
             return response.JsonResponse(serializer.data, status=200)
         
     
-    @swagger_auto_schema(operation_description='testing', request_body=FundingSerializer)
+    @swagger_auto_schema(operation_description='testing', request_body=FundingPutSerializer)
     def put(self, request):
         author = Verify.jwt(self, request=request)
         funding = Verify.funding(request=request)
@@ -90,7 +117,8 @@ class FundingView(APIView, JWTStatelessUserAuthentication):
                     else:
                         setattr(funding, keys, request.data[keys])
             funding.save()
-            return response.HttpResponse(status=200)
+            serializer = FundingDetailSerializer(funding)
+            return response.HttpResponse(serializer.data, status=200)
         else:
             return response.JsonResponse({"detail":"not author"},status=400)
         
@@ -167,7 +195,6 @@ class GetPublicFundings(APIView, JWTStatelessUserAuthentication):
     page = openapi.Parameter('page', openapi.IN_QUERY, type=openapi.TYPE_STRING, default=1)
     @swagger_auto_schema(manual_parameters=[page], operation_description='GET PUBLIC FUNDING')
     def get(self, request):
-        Verify.jwt(self, request=request)
         fundings = Funding.objects.filter(public = True).order_by('-id')
         paginator = paging_funding(request=request, list=fundings)
         serializer = FundingSerializer(paginator, many=True)

@@ -14,12 +14,36 @@ from .models import Remit, Account, Funding
 from config.util import Verify, paging_remit
 from rest_framework_simplejwt.authentication import JWTStatelessUserAuthentication
 
-
-class RemitSerializer(serializers.ModelSerializer):
+class RemitPostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Remit
-        fields = '__all__'
+        fields = ['funding', 'amount', 'message']
+
+class RemitPutSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Remit
+        fields = ['id', 'message']
+
+class RemitSerializer(serializers.ModelSerializer):
+
+    def getAuthor(self, obj):
+        id = obj.author.id
+        author = Account.objects.get(id = id)
+        profile = {
+            "id" : author.id,
+            "username" : author.username,
+            "image" : author.image.url
+        }
+        return profile
+    
+    
+    author = serializers.SerializerMethodField('getAuthor')
+
+    class Meta:
+        model = Remit
+        fields = ['id','message', 'author','created_on']
 
 
 
@@ -36,7 +60,7 @@ class RemitView(APIView, JWTStatelessUserAuthentication):
         return response.JsonResponse(serializer.data,safe=False, status=200)
 
     #생성
-    @swagger_auto_schema(operation_description='testing', request_body=RemitSerializer)
+    @swagger_auto_schema(operation_description='testing', request_body=RemitPostSerializer)
     def post(self, request):
         author = Verify.jwt(self, request=request)
         fundingObj = Funding.objects.get(id=request.data.get('funding'))
@@ -63,6 +87,7 @@ class RemitView(APIView, JWTStatelessUserAuthentication):
         serializer = RemitSerializer(remit)
         return response.JsonResponse(serializer.data, status=200)
 
+    @swagger_auto_schema(operation_description='testing', request_body=RemitPutSerializer)
     def put(self, request):
         author = Verify.jwt(request=request)
         remit = Verify.remit(request=request)
@@ -75,6 +100,7 @@ class RemitView(APIView, JWTStatelessUserAuthentication):
             return response.HttpResponse(status=400)
         
     #삭제
+    @swagger_auto_schema(operation_description='testing', request_body=RemitPutSerializer)
     def delete(self, request):
         author = Verify.jwt(request=request)
         remit = Verify.remit(request=request)

@@ -8,6 +8,7 @@ from django.contrib.auth import get_user_model
 # Create your models here.
 
 class Funding(models.Model):
+    id = models.IntegerField(unique=True, primary_key=True)
     #제목
     title = models.CharField(max_length=20, null=False)
     #내용

@@ -24,5 +24,5 @@ urlpatterns = [
     path('user', views.GetFundings.as_view()),
     path('following', views.GetFollowFundings.as_view()),
     path('joined', views.GetJoinedFundings.as_view()),
-    path('public', views.GetJoinedFundings.as_view()),
+    path('public', views.GetPublicFundings.as_view()),
 ]

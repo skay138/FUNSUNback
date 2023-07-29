@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from .models import Account
 from follow.models import Follow
-from funding.models import Funding
 
 
 class ProfileSerializer(serializers.ModelSerializer):

@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 # Create your models here.
 
 class Funding(models.Model):
-    id = models.IntegerField(unique=True, primary_key=True)
+    id = models.AutoField(unique=True, primary_key=True)
     #제목
     title = models.CharField(max_length=20, null=False)
     #내용
@@ -32,6 +32,7 @@ class Funding(models.Model):
         upload_to='funding_image/',
         null=True
     )
+    is_transmitted = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return f"{self.title}({self.author})"

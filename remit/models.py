@@ -5,7 +5,7 @@ from funding.models import Funding
 # Create your models here.
 
 class Remit(models.Model):
-    id = models.IntegerField(unique=True, primary_key=True)
+    id = models.AutoField(unique=True, primary_key=True)
     #작성자
     author = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='Remit')
     #펀딩

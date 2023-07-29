@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'funding',
     'remit',
     'follow',
+    'report',
 ]
 AUTH_USER_MODEL = 'account.Account'
 

@@ -86,9 +86,12 @@ class AccountView(APIView, JWTStatelessUserAuthentication):
 
     id = openapi.Parameter('id', openapi.IN_QUERY, type=openapi.TYPE_STRING, default='admin')
 
-    @swagger_auto_schema(operation_description='what to do !')
+    @swagger_auto_schema(operation_description='get my profile')
     def post(self, request):
-        return response.JsonResponse({"detatil":"thinking what to do"})
+        user = Verify.jwt(self, request=request)
+        account = Account.objects.get(id=user.id)
+        serializer = ProfileSerializer(account)
+        return response.JsonResponse(serializer.data)
         
 
 

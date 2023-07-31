@@ -6,7 +6,7 @@ from .models import Remit
 
 class RemitAdmin(admin.ModelAdmin):
     
-    list_display = ('id','funding','author', 'amount', 'message')
+    list_display = ('id','funding','funding_id','author','author_id' ,'amount', 'message')
     list_display_links=('id',)
 
     search_fields = ['id','author__id']

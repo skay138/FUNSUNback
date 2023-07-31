@@ -32,9 +32,17 @@ class Funding(models.Model):
         upload_to='funding_image/',
         null=True
     )
+    #펀딩전송
     is_transmitted = models.BooleanField(default=False)
 
+    #후기
+    review = models.TextField(null=True)
+    review_image = models.ImageField(
+        upload_to='review_image/',
+        null=True
+    )
+
     def __str__(self) -> str:
-        return f"{self.title}({self.author})"
+        return self.title
     
 

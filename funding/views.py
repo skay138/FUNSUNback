@@ -14,7 +14,7 @@ from remit.models import Remit
 from follow.models import Follow
 # Create your views here.
 
-from config.util import OverwriteStorage, Verify, funding_image_upload, paging_funding
+from config.util import OverwriteStorage, Verify, funding_image_upload, review_image_upload, paging_funding
 
 
 class FundingDetailSerializer(serializers.ModelSerializer):
@@ -34,7 +34,7 @@ class FundingDetailSerializer(serializers.ModelSerializer):
 
     class Meta :
         model = Funding
-        fields = ['id', 'title', 'content', 'goal_amount', 'current_amount', 'image', 'expire_on', 'created_on', 'public', 'author']
+        fields = ['id', 'title', 'content', 'goal_amount', 'current_amount', 'image', 'expire_on', 'created_on', 'public', 'author', 'review', 'review_image']
 
 class FundingSerializer(serializers.ModelSerializer):
 
@@ -51,6 +51,11 @@ class FundingPutSerializer(serializers.ModelSerializer):
     class Meta:
         model = Funding
         fields = ['id', 'title', 'content', 'public', 'image', 'public']
+
+class ReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Funding
+        fields = ['id', 'review', 'review_image']
 
 
 class FundingView(APIView, JWTStatelessUserAuthentication):
@@ -118,11 +123,12 @@ class FundingView(APIView, JWTStatelessUserAuthentication):
                         setattr(funding, keys, request.data[keys])
             funding.save()
             serializer = FundingDetailSerializer(funding)
-            return response.HttpResponse(serializer.data, status=200)
+            return response.JsonResponse(serializer.data, status=200)
         else:
             return response.JsonResponse({"detail":"not author"},status=400)
         
     #삭제
+    @swagger_auto_schema(request_body=FundingPutSerializer)
     def delete(self, request):
         author = Verify.jwt(self, request=request)
         funding = Verify.funding(request=request)
@@ -132,6 +138,21 @@ class FundingView(APIView, JWTStatelessUserAuthentication):
             return response.HttpResponse(status=200)
         else:
             return response.JsonResponse({"detail":"bad request"},status=400)
+        
+class reviewFunding(APIView, JWTStatelessUserAuthentication):
+    @swagger_auto_schema(request_body=ReviewSerializer)
+    def post(self, request):
+        author = Verify.jwt(self, request=request)
+        funding = Verify.funding(request=request)
+
+        if(funding.author.id == author.id):
+            funding.review = request.data.get('review')
+            if(request.FILES.get('review_image')):
+                data_image = request.FILES.get('review_image')
+                setattr(funding, 'review_image', OverwriteStorage().save(review_image_upload(funding.id), data_image))
+            funding.save()
+            serializer = FundingDetailSerializer(funding)
+        return response.JsonResponse(serializer.data, status=200)
         
 
 # class GetMyFundings(APIView, JWTStatelessUserAuthentication):

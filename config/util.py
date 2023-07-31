@@ -106,6 +106,11 @@ def funding_image_upload(id):
     return f'{path}{id}.png'
 
 
+def review_image_upload(id):
+    path = 'review_image/'
+    return f'{path}{id}.png'
+
+
 
 def paging_funding(request, list):
 

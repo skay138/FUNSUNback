@@ -22,6 +22,7 @@ from django.urls import path, include
 urlpatterns = [
     path('', views.FundingView.as_view()),
     path('user', views.GetFundings.as_view()),
+    path('review', views.reviewFunding.as_view()),
     path('following', views.GetFollowFundings.as_view()),
     path('joined', views.GetJoinedFundings.as_view()),
     path('public', views.GetPublicFundings.as_view()),

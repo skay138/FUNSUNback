@@ -22,12 +22,15 @@ class Verify(JWTStatelessUserAuthentication):
     def jwt(self, request):
         print('start verify')
         if(request.headers.get("Authorization")):
-            user = JWTStatelessUserAuthentication.authenticate(self, request=request)
-            if(user):
-                print(user[0])
-                return user[0]
-            else:
-                raise JwtException(detail='unknown Token')
+            try :
+                user = JWTStatelessUserAuthentication.authenticate(self, request=request)
+                if(user):
+                    print(user[0])
+                    return user[0]
+                else:
+                    raise JwtException(detail='unknown Token')
+            except :
+                raise JwtException(detail="CAN'T FIND USER")
         else:
             raise JwtException(detail="NO ACCESS TOKEN")
             

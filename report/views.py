@@ -42,4 +42,4 @@ class ReportView(APIView, JWTStatelessUserAuthentication):
         report.save()
         serializer = ReportSerializer(report)
 
-        return response.JsonResponse(serializer.data, status=200)
+        return response.JsonResponse(serializer.data, status=201)

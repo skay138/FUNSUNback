@@ -85,7 +85,7 @@ class RemitView(APIView, JWTStatelessUserAuthentication):
         fundingObj.current_amount += amount
         fundingObj.save()
         serializer = RemitSerializer(remit)
-        return response.JsonResponse(serializer.data, status=200)
+        return response.JsonResponse(serializer.data, status=201)
 
     @swagger_auto_schema(operation_description='testing', request_body=RemitPutSerializer)
     def put(self, request):

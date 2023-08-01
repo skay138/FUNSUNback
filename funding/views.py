@@ -22,10 +22,11 @@ class FundingDetailSerializer(serializers.ModelSerializer):
     def getAuthor(self, obj):
         id = obj.author.id
         author = Account.objects.get(id = id)
+        image = author.image.url if author.image else None
         profile = {
             "id" : author.id,
             "username" : author.username,
-            "image" : author.image.url
+            "image" : image
         }
         return profile
     
@@ -97,7 +98,7 @@ class FundingView(APIView, JWTStatelessUserAuthentication):
                         setattr(funding, keys, request.data[keys])
             funding.save()
             serializer = FundingDetailSerializer(funding)
-            return response.JsonResponse(serializer.data, status=200)
+            return response.JsonResponse(serializer.data, status=201)
         
     
     @swagger_auto_schema(operation_description='testing', request_body=FundingPutSerializer)

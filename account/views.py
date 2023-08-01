@@ -107,20 +107,21 @@ class AccountView(APIView, JWTStatelessUserAuthentication):
     def put(self, request):
         user = Verify.jwt(self, request=request)
         profile = Account.objects.get(id=user.id)
-        for keys in request.data:
-            if hasattr(profile, keys)== True:
-                if keys == 'is_superuser':
-                    pass
-                if keys == 'is_staff':
-                    pass
-                if keys == 'image' and request.FILES.get('image'):
-                    data_image = request.FILES.get('image')
-                    setattr(profile, keys, OverwriteStorage().save(image_upload(user.id), data_image))
-                else :
-                    setattr(profile, keys, request.data[keys])
-        profile.save()
-        serializer = ProfileSerializer(profile)
-        return response.JsonResponse(serializer.data, status=200)
+        if (profile.id == request.data.get('id')):
+            for keys in request.data:
+                if hasattr(profile, keys)== True:
+                    if keys == 'is_superuser':
+                        pass
+                    if keys == 'is_staff':
+                        pass
+                    if keys == 'image' and request.FILES.get('image'):
+                        data_image = request.FILES.get('image')
+                        setattr(profile, keys, OverwriteStorage().save(image_upload(user.id), data_image))
+                    else :
+                        setattr(profile, keys, request.data[keys])
+            profile.save()
+            serializer = ProfileSerializer(profile)
+            return response.JsonResponse(serializer.data, status=200)
     
     @swagger_auto_schema(request_body=AccountSerializer)
     def delete(self, request):

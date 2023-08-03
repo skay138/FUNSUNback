@@ -14,6 +14,10 @@ from .models import Remit, Account, Funding
 from config.util import Verify, paging_remit
 from rest_framework_simplejwt.authentication import JWTStatelessUserAuthentication
 
+import json
+import requests
+import os
+
 class RemitPostSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -31,10 +35,11 @@ class RemitSerializer(serializers.ModelSerializer):
     def getAuthor(self, obj):
         id = obj.author.id
         author = Account.objects.get(id = id)
+        image = author.image.url if author.image else None
         profile = {
             "id" : author.id,
             "username" : author.username,
-            "image" : author.image.url
+            "image" : image
         }
         return profile
     
@@ -110,3 +115,103 @@ class RemitView(APIView, JWTStatelessUserAuthentication):
             return response.HttpResponse(status=200)
         else:
             return response.HttpResponse(status=400)
+        
+
+
+class KakaoPay(APIView, JWTStatelessUserAuthentication):
+    pg_token = openapi.Parameter('pg_token', openapi.IN_QUERY, type=openapi.TYPE_STRING, default=1234125)
+    kakaoApiKey = 'ef1ad9b7217b279d7e7860cd9322e8b3'
+
+    
+    class serial(serializers.Serializer):
+        tid = openapi.Parameter('tid', openapi.IN_BODY, type=openapi.TYPE_STRING)
+
+    @swagger_auto_schema(tags=["KAKAOPAY"], operation_description='ready', request_body=serial)
+    def post(self, request, pk):
+        user = Verify.jwt(self, request=request)
+        amount = request.data.get('amount')
+        approvalUrl = f'http://projectsekai.kro.kr:5000/remit/{user.id}'
+
+        headers = {
+        'Authorization': f'KakaoAK {self.kakaoApiKey}',
+        'Content-type': 'application/x-www-form-urlencoded;charset=utf-8',
+        }
+
+        request_body = {
+        'cid': 'TC0ONETIME',
+        'partner_order_id': 'FUNSUN_KAKAOPAY',
+        'partner_user_id': user.id,
+        'item_name': 'FUNSUN_FUNDING',
+        'quantity': 1,
+        'total_amount': amount,
+        'vat_amount': 0,
+        'tax_free_amount': 0,
+        'approval_url': approvalUrl,
+        'fail_url': 'https://developers.kakao.com/fail',
+        'cancel_url': 'https://developers.kakao.com/cancel',
+        }
+
+        result = requests.post(url='https://kapi.kakao.com/v1/payment/ready', data=request_body, headers=headers).json()
+        
+        
+        tid = result['tid']
+        url = result['next_redirect_app_url']
+        
+        data = {
+            "tid" : tid,
+            "pg_token": None,
+        }
+        with open(f"media/remit_data/{user.id}.json", "w") as json_file:
+            json.dump(data, json_file)
+
+        return response.JsonResponse({'url':url},status=200)
+    
+    @swagger_auto_schema(tags=["KAKAOPAY"],manual_parameters=[pg_token], operation_description='kakaoPAY')
+    def get(self, request, pk):
+        pg_token = request.GET.get('pg_token')
+
+        with open(f"media/remit_data/{pk}.json", "r") as json_file:
+            data = json.load(json_file)
+
+        data["pg_token"]= pg_token
+
+        with open(f"media/remit_data/{pk}.json", "w") as json_file:
+            json.dump(data, json_file)
+
+        return response.HttpResponse(status=200)
+
+
+
+class KakaoApproveView(APIView, JWTStatelessUserAuthentication):
+    kakaoApiKey = 'ef1ad9b7217b279d7e7860cd9322e8b3'
+
+    @swagger_auto_schema(tags=["KakaoApprove"], operation_description='test')
+    def get(self, request, pk):
+        user = Verify.jwt(self, request=request)
+
+        with open(f"media/remit_data/{user.id}.json", "r") as json_file:
+            data = json.load(json_file)
+
+        requestBody = {
+            'cid': 'TC0ONETIME',
+            'tid': data['tid'],
+            'partner_order_id': 'FUNSUN_KAKAOPAY',
+            'partner_user_id': user.id,
+            'pg_token': data['pg_token'],
+        }
+
+        headers = {
+        'Authorization': f'KakaoAK {self.kakaoApiKey}',
+    
+        }
+
+        result = requests.post(url='https://kapi.kakao.com/v1/payment/ready', data=requestBody, headers=headers)
+        if(result.status_code == 200):
+            os.remove(f"media/remit_data/{user.id}.json")
+            return response.HttpResponse(status=200)
+        else:
+            return response.HttpResponse(status=400)
+
+   
+
+

@@ -74,14 +74,21 @@ class FundingView(APIView, JWTStatelessUserAuthentication):
     def post(self, request):
         author = Verify.jwt(self, request=request)
         goal_amount = int(request.data.get('goal_amount'))
+        public = request.data.get('public')
+        if(public == 'true'):
+            public = True
+        if(public == 'false'):
+            public =False
 
         if(goal_amount > 10000000 or goal_amount < 1000):
             return response.JsonResponse({"detail":"out value"},status=400)
         else:
             funding = Funding.objects.create(
                 goal_amount=goal_amount,
-                author=Account.objects.get(id=author.id)
+                author=Account.objects.get(id=author.id),
+                public = public
             )
+
             
             for keys in request.data:
                 if hasattr(funding, keys)== True:
@@ -90,6 +97,8 @@ class FundingView(APIView, JWTStatelessUserAuthentication):
                     elif(keys == 'author'):
                         pass
                     elif(keys == 'current_amount'):
+                        pass
+                    elif(keys == 'public'):
                         pass
                     elif keys == 'image' and request.FILES.get('image'):
                         data_image = request.FILES.get('image')
@@ -105,6 +114,10 @@ class FundingView(APIView, JWTStatelessUserAuthentication):
     def put(self, request):
         author = Verify.jwt(self, request=request)
         funding = Verify.funding(request=request)
+        if(public == 'true'):
+            public = True
+        if(public == 'false'):
+            public =False
 
         if(funding.author.id == author.id):
             for keys in request.data:
@@ -117,6 +130,8 @@ class FundingView(APIView, JWTStatelessUserAuthentication):
                         pass
                     elif(keys == 'expire_on'):
                         pass
+                    elif(keys == 'public'):
+                        funding.public = public
                     elif keys == 'image' and request.FILES.get('image'):
                         data_image = request.FILES.get('image')
                         setattr(funding, keys, OverwriteStorage().save(funding_image_upload(funding.id), data_image))

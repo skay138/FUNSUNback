@@ -15,6 +15,7 @@ from follow.models import Follow
 # Create your views here.
 
 from config.util import OverwriteStorage, Verify, funding_image_upload, review_image_upload, paging_funding
+import os
 
 
 class FundingDetailSerializer(serializers.ModelSerializer):
@@ -114,6 +115,7 @@ class FundingView(APIView, JWTStatelessUserAuthentication):
     def put(self, request):
         author = Verify.jwt(self, request=request)
         funding = Verify.funding(request=request)
+        
         if(public == 'true'):
             public = True
         if(public == 'false'):
@@ -132,12 +134,16 @@ class FundingView(APIView, JWTStatelessUserAuthentication):
                         pass
                     elif(keys == 'public'):
                         funding.public = public
+                    elif(request.data.get('image_delete') == 'delete'):
+                        funding.image = None
                     elif keys == 'image' and request.FILES.get('image'):
                         data_image = request.FILES.get('image')
                         setattr(funding, keys, OverwriteStorage().save(funding_image_upload(funding.id), data_image))
                     else:
                         setattr(funding, keys, request.data[keys])
             funding.save()
+            if(request.data.get('image_delete') == 'delete'):
+                os.remove(f"media/funding_image/{funding.id}.png")
             serializer = FundingDetailSerializer(funding)
             return response.JsonResponse(serializer.data, status=200)
         else:

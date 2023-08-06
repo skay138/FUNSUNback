@@ -12,7 +12,7 @@ from rest_framework_simplejwt.authentication import JWTStatelessUserAuthenticati
 
 #model/serializer
 from .models import Account
-from .serializers import AccountSerializer, ProfileSerializer, KakaoRequestSerializer
+from .serializers import AccountSerializer, MyProfileSerializer,ProfileSerializer, KakaoRequestSerializer
 
 #http
 from django.http import response
@@ -52,7 +52,7 @@ class KakaoLogin(APIView):
         
         try :
             account = Account.objects.get(id = userData['id'])
-            serializer = ProfileSerializer(account)
+            serializer = MyProfileSerializer(account)
             token = MyTokenObtainPairSerializer.get_token(account)
             acessToken = token.access_token
             data = {
@@ -67,7 +67,7 @@ class KakaoLogin(APIView):
             
         except Account.DoesNotExist:
             account = Account.objects.create_user(userData=userData)
-            serializer = AccountSerializer(account)
+            serializer = MyProfileSerializer(account)
             token = MyTokenObtainPairSerializer.get_token(account)
             acessToken = token.access_token
             data = {
@@ -90,16 +90,18 @@ class AccountView(APIView, JWTStatelessUserAuthentication):
     def post(self, request):
         user = Verify.jwt(self, request=request)
         account = Account.objects.get(id=user.id)
-        serializer = ProfileSerializer(account)
+        serializer = MyProfileSerializer(account)
         return response.JsonResponse(serializer.data)
         
 
 
     @swagger_auto_schema(manual_parameters=[id], operation_description='GET USER INFO')
     def get(self, request):
-        Verify.jwt(self, request=request)
+        user = Verify.jwt(self, request=request)
         account = Verify.account(request=request)
         serializer = ProfileSerializer(account)
+        if(account.id == user.id):
+            serializer = MyProfileSerializer(account)
         return response.JsonResponse(serializer.data, status=200)
     
     
@@ -107,21 +109,22 @@ class AccountView(APIView, JWTStatelessUserAuthentication):
     def put(self, request):
         user = Verify.jwt(self, request=request)
         profile = Account.objects.get(id=user.id)
-        if (profile.id == request.data.get('id')):
-            for keys in request.data:
-                if hasattr(profile, keys)== True:
-                    if keys == 'is_superuser':
-                        pass
-                    if keys == 'is_staff':
-                        pass
-                    if keys == 'image' and request.FILES.get('image'):
-                        data_image = request.FILES.get('image')
-                        setattr(profile, keys, OverwriteStorage().save(image_upload(user.id), data_image))
-                    else :
-                        setattr(profile, keys, request.data[keys])
-            profile.save()
-            serializer = ProfileSerializer(profile)
-            return response.JsonResponse(serializer.data, status=200)
+        for keys in request.data:
+            if hasattr(profile, keys)== True:
+                if (keys == 'is_superuser'):
+                    pass
+                elif (keys == 'is_staff'):
+                    pass
+                elif (request.data.get('image_delete') == 'delete'):
+                    profile.image = None
+                elif (keys == 'image' and request.FILES.get('image')):
+                    data_image = request.FILES.get('image')
+                    setattr(profile, keys, OverwriteStorage().save(image_upload(user.id), data_image))
+                else :
+                    setattr(profile, keys, request.data[keys])
+        profile.save()
+        serializer = MyProfileSerializer(profile)
+        return response.JsonResponse(serializer.data, status=200)
     
     @swagger_auto_schema(request_body=AccountSerializer)
     def delete(self, request):
@@ -150,7 +153,7 @@ class ProfileSearch(APIView, JWTStatelessUserAuthentication):
 class GetToken(APIView):
     def get(self, request):
         account = Account.objects.get(id = 'admin')
-        serializer = ProfileSerializer(account)
+        serializer = MyProfileSerializer(account)
         token = MyTokenObtainPairSerializer.get_token(account)
         acessToken = token.access_token
         data = {

@@ -21,6 +21,6 @@ from django.urls import path, include
 
 urlpatterns = [
     path('', views.RemitView.as_view()),
-    path('<str:pk>', views.KakaoPay.as_view()),
-    path('<str:pk>/approve', views.KakaoApproveView.as_view()),
+    path('kakaopay/ready', views.KakaoPay.as_view()),
+    path('kakaopay/approve', views.KakaoApproveView.as_view()),
 ]

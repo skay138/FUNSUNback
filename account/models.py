@@ -44,7 +44,8 @@ class Account(AbstractBaseUser, PermissionsMixin):
     updated_on = models.DateTimeField(auto_now=True)
 
     ##custom
-    birthday = models.CharField(max_length=4)
+    bank_account = models.CharField(max_length=30, null=True)
+    birthday = models.CharField(max_length=4, null=True)
     username = models.CharField(max_length=20)
     gender = models.CharField(max_length=6)
     age_range = models.CharField(max_length=5)

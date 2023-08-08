@@ -16,6 +16,7 @@ from rest_framework_simplejwt.authentication import JWTStatelessUserAuthenticati
 from django.utils import timezone
 
 
+
 import json
 import requests
 import os
@@ -90,6 +91,7 @@ class RemitView(APIView, JWTStatelessUserAuthentication):
                     setattr(remit, keys, request.data[keys])
         remit.save()
         fundingObj.current_amount += amount
+        fundingObj.updated_on = timezone.now()
         fundingObj.save()
         serializer = RemitSerializer(remit)
         return response.JsonResponse(serializer.data, status=201)

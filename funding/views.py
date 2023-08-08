@@ -42,7 +42,7 @@ class FundingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Funding
-        fields = ['id', 'title','image', 'goal_amount', 'current_amount', 'expire_on']
+        fields = ['id', 'title','image', 'goal_amount', 'current_amount', 'expire_on', 'public']
 
 class FundingPostSerializer(serializers.ModelSerializer):
     class Meta:
@@ -115,7 +115,7 @@ class FundingView(APIView, JWTStatelessUserAuthentication):
     def put(self, request):
         author = Verify.jwt(self, request=request)
         funding = Verify.funding(request=request)
-        
+        public = request.data.get('public')
         if(public == 'true'):
             public = True
         if(public == 'false'):
@@ -124,6 +124,8 @@ class FundingView(APIView, JWTStatelessUserAuthentication):
         if(funding.author.id == author.id):
             for keys in request.data:
                 if hasattr(funding, keys) == True:
+                    if(request.data.get('image_delete') == 'delete'):
+                        funding.image = None
                     if(keys == 'goal_amount'):
                         pass
                     elif(keys == 'author'):
@@ -134,8 +136,6 @@ class FundingView(APIView, JWTStatelessUserAuthentication):
                         pass
                     elif(keys == 'public'):
                         funding.public = public
-                    elif(request.data.get('image_delete') == 'delete'):
-                        funding.image = None
                     elif keys == 'image' and request.FILES.get('image'):
                         data_image = request.FILES.get('image')
                         setattr(funding, keys, OverwriteStorage().save(funding_image_upload(funding.id), data_image))
@@ -144,9 +144,11 @@ class FundingView(APIView, JWTStatelessUserAuthentication):
             funding.save()
             if(request.data.get('image_delete') == 'delete'):
                 os.remove(f"media/funding_image/{funding.id}.png")
+                
             serializer = FundingDetailSerializer(funding)
             return response.JsonResponse(serializer.data, status=200)
         else:
+            print('here')
             return response.JsonResponse({"detail":"not author"},status=400)
         
     #삭제
@@ -228,7 +230,7 @@ class GetJoinedFundings(APIView, JWTStatelessUserAuthentication):
     def get(self, request):
         user = Verify.jwt(self, request=request)
         funding_ids = Remit.objects.filter(author_id = user.id).values('funding').distinct()
-        fundings = Funding.objects.filter(id__in = funding_ids).order_by('-id')
+        fundings = Funding.objects.filter(id__in = funding_ids).order_by('-updated_on')
         paginator = paging_funding(request=request, list=fundings)
         serializer = FundingSerializer(paginator, many=True)
         return response.JsonResponse(serializer.data, safe=False, status=200)

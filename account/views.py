@@ -111,12 +111,12 @@ class AccountView(APIView, JWTStatelessUserAuthentication):
         profile = Account.objects.get(id=user.id)
         for keys in request.data:
             if hasattr(profile, keys)== True:
+                if (request.data.get('image_delete') == 'delete'):
+                    profile.image = None
                 if (keys == 'is_superuser'):
                     pass
                 elif (keys == 'is_staff'):
                     pass
-                elif (request.data.get('image_delete') == 'delete'):
-                    profile.image = None
                 elif (keys == 'image' and request.FILES.get('image')):
                     data_image = request.FILES.get('image')
                     setattr(profile, keys, OverwriteStorage().save(image_upload(user.id), data_image))

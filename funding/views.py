@@ -18,9 +18,6 @@ from config.util import OverwriteStorage, Verify, funding_image_upload, review_i
 import os
 
 
-class FundingDetailSerializer(serializers.ModelSerializer):
-
-
 
 class FundingView(APIView, JWTStatelessUserAuthentication):
     id = openapi.Parameter('id', openapi.IN_QUERY, type=openapi.TYPE_STRING, default=1)

@@ -3,7 +3,6 @@ from account.models import Account
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from datetime import timedelta
-from django.contrib.auth import get_user_model
 
 # Create your models here.
 

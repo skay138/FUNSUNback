@@ -18,6 +18,7 @@ from config.util import OverwriteStorage, Verify, funding_image_upload, review_i
 import os
 
 
+class FundingDetailSerializer(serializers.ModelSerializer):
 
 
 
@@ -77,6 +78,7 @@ class FundingView(APIView, JWTStatelessUserAuthentication):
         author = Verify.jwt(self, request=request)
         funding = Verify.funding(request=request)
         public = request.data.get('public')
+        public = request.data.get('public')
         if(public == 'true'):
             public = True
         if(public == 'false'):
@@ -85,6 +87,8 @@ class FundingView(APIView, JWTStatelessUserAuthentication):
         if(funding.author.id == author.id):
             for keys in request.data:
                 if hasattr(funding, keys) == True:
+                    if(request.data.get('image_delete') == 'delete'):
+                        funding.image = None
                     if(request.data.get('image_delete') == 'delete'):
                         funding.image = None
                     if(keys == 'goal_amount'):
@@ -105,6 +109,7 @@ class FundingView(APIView, JWTStatelessUserAuthentication):
             funding.save()
             if(request.data.get('image_delete') == 'delete'):
                 os.remove(f"media/funding_image/{funding.id}.png")
+                
                 
             serializer = FundingDetailSerializer(funding)
             return response.JsonResponse(serializer.data, status=200)
@@ -190,6 +195,7 @@ class GetJoinedFundings(APIView, JWTStatelessUserAuthentication):
     def get(self, request):
         user = Verify.jwt(self, request=request)
         funding_ids = Remit.objects.filter(author_id = user.id).values('funding').distinct()
+        fundings = Funding.objects.filter(id__in = funding_ids).order_by('-updated_on')
         fundings = Funding.objects.filter(id__in = funding_ids).order_by('-updated_on')
         paginator = paging_funding(request=request, list=fundings)
         serializer = FundingSerializer(paginator, many=True)

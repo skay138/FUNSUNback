@@ -8,7 +8,7 @@ FunSun은 상대방의 취향과 필요성을 고려하여 정말 받고싶은 �
 
 http://projectsekai.kro.kr:5000/swagger/ 에서 API를 확인할 수 있습니다.
 
-### 사용 기술
+### 기술 설명
 - OracleCloud에 ubuntu 운영체제로 nignx와 uWSGI를 이용하여 Backend 서버 구현
 - rest_framework_simplejwt를 이용하여 DB의 유저id값을 필터링하여 jwt 적용
 - 테이블별로 app으로 나누어 관리

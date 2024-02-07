@@ -26,6 +26,7 @@ class Verify(JWTStatelessUserAuthentication):
                 user = JWTStatelessUserAuthentication.authenticate(self, request=request)
                 if(user):
                     print(user[0])
+
                     return user[0]
                 else:
                     raise JwtException(detail='unknown Token')
@@ -57,14 +58,16 @@ class Verify(JWTStatelessUserAuthentication):
     def funding(request):
         if(request.GET.get('id')):
             try:
-                funding = Funding.objects.get(id=request.GET.get('id'))
+                # funding = Funding.objects.get(id=request.GET.get('id'))
+                funding = Funding.objects.select_related('author').get(id=request.GET.get('id'))
             except Funding.DoesNotExist:
                 raise NoContentException(detail="can't find funding")
             return funding
         
         elif(request.data.get('id')):
             try :
-                funding = Funding.objects.get(id=request.data.get('id'))
+                # funding = Funding.objects.get(id=request.data.get('id'))
+                funding = Funding.objects.select_related('author').get(id=request.data.get('id'))
             except Funding.DoesNotExist:
                 raise NoContentException(detail="can't find funding")
             return funding
@@ -148,3 +151,16 @@ def paging_remit(request, list):
         raise NoContentException(detail="no more content")
 
     return page_obj
+
+
+def manual_pagination(request, items, per_page=10):
+    page = request.GET.get('page', 1)
+    per_page = per_page
+
+    # 현재 페이지에 해당하는 항목들을 슬라이싱합니다.
+    start_index = (int(page) - 1) * per_page
+    end_index = start_index + per_page
+    current_items = items[start_index:end_index]
+
+    # 슬라이싱된 항목들과 페이지 정보를 반환합니다.
+    return current_items

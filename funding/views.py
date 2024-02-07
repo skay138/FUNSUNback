@@ -14,7 +14,8 @@ from remit.models import Remit
 from follow.models import Follow
 # Create your views here.
 
-from config.util import OverwriteStorage, Verify, funding_image_upload, review_image_upload, paging_funding
+from config.util import OverwriteStorage, Verify, funding_image_upload, review_image_upload, paging_funding,manual_pagination
+from django.db.models import Q
 import os
 
 
@@ -158,15 +159,15 @@ class GetFundings(APIView, JWTStatelessUserAuthentication):
     @swagger_auto_schema(manual_parameters=[page, id], operation_description='GET USER FUNDINGS')
     def get(self, request):
         user = Verify.jwt(self, request=request)
-        fundinguser = request.GET.get('id')
-        if user.id == fundinguser:
-            fundings = Funding.objects.filter(author_id = user.id).order_by('-id')
+        target_id = request.GET.get('id')
+        if user.id == target_id:
+            fundings = Funding.objects.filter(author_id = user.id).order_by('-id').select_related('author')
             paginator = paging_funding(request=request, list=fundings)
             serializer = FundingSerializer(paginator, many=True)
             return response.JsonResponse(serializer.data, safe=False, status=200)
         else :
-            isFriend = Follow.objects.filter(follower = user.id, followee = fundinguser).count() & Follow.objects.filter(follower = fundinguser, followee=user.id).count()
-            fundings = Funding.objects.filter(author_id = fundinguser).order_by('-id') if isFriend else Funding.objects.filter(author_id = fundinguser, public=True).order_by('-id')
+            isFriend = Follow.objects.filter(follower = user.id, followee = target_id).count() & Follow.objects.filter(follower = target_id, followee=user.id).count()
+            fundings = Funding.objects.filter(author_id = target_id).order_by('-id') if isFriend else Funding.objects.filter(author_id = target_id, public=True).order_by('-id')
             paginator = paging_funding(request=request, list=fundings)
             serializer = FundingSerializer(paginator, many=True)
             return response.JsonResponse(serializer.data, safe=False, status=200)
@@ -178,10 +179,18 @@ class GetFollowFundings(APIView, JWTStatelessUserAuthentication):
     def get(self, request):
 
         user = Verify.jwt(self, request=request)
-        followee = Follow.objects.filter(follower = user.id).values('followee')
-        friend = Follow.objects.filter(followee = user.id , follower__in = followee).values('follower')
-        fundings = Funding.objects.filter(author__in = followee, public = True).order_by('-id') | Funding.objects.filter(author__in = friend, public=False).order_by('-id')
-        paginator = paging_funding(request=request, list=fundings)
+
+        #내가 팔로우한 사람들
+        followee_users = Follow.objects.filter(follower=user.id).values_list('followee')
+        #나를 팔로우한 사람들
+        follower_users = Follow.objects.filter(followee=user.id).values_list('follower', flat=True)
+
+        # 사용자가 팔로우한 사용자들의 펀딩 가져오기
+        fundings = Funding.objects.filter(
+            Q(author__in=followee_users) & (Q(public=True) |  # 내가 팔로우한 사람들의 공개 펀딩
+            (Q(public=False)&Q(author__in=follower_users)))   # 비공개 펀딩 중 사용자가 작성자를 팔로우한 경우
+        ).order_by('-created_on').select_related('author')
+        paginator = manual_pagination(request=request,items=fundings,per_page=8)
         serializer = FundingSerializer(paginator, many=True)
         return response.JsonResponse(serializer.data, safe=False, status=200)
     

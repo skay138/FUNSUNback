@@ -3,12 +3,10 @@ from .models import Funding, Account
 class FundingDetailSerializer(serializers.ModelSerializer):
 
     def getAuthor(self, obj):
-        id = obj.author.id
-        author = Account.objects.get(id = id)
-        image = author.image.url if author.image else None
+        image = obj.author.image.url if obj.author.image else None
         profile = {
-            "id" : author.id,
-            "username" : author.username,
+            "id" : obj.author.id,
+            "username" : obj.author.username,
             "image" : image
         }
         return profile
@@ -23,12 +21,10 @@ class FundingDetailSerializer(serializers.ModelSerializer):
 class FundingSerializer(serializers.ModelSerializer):
 
     def getAuthor(self, obj):
-        id = obj.author.id
-        author = Account.objects.get(id = id)
-        image = author.image.url if author.image else None
+        image = obj.author.image.url if obj.author.image else None
         profile = {
-            "id" : author.id,
-            "username" : author.username,
+            "id" : obj.author.id,
+            "username" : obj.author.username,
             "image" : image
         }
         return profile

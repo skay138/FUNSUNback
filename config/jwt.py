@@ -7,7 +7,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token = super().get_token(user)
 
         # Add custom claims
-        token['id'] = user.id
+        token['id'] = str(user.id)
         token['is_active'] = user.is_active
         # ...
 

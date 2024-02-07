@@ -17,7 +17,7 @@ class Funding(models.Model):
     #현재금액
     current_amount = models.IntegerField(default=0)
     #작성자
-    author = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='Funding')
+    author = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='funding_author')
     #종료일
     expire_on = models.DateTimeField(auto_now_add=False, default=(timezone.now()+timedelta(days=30)))
     #작성날짜

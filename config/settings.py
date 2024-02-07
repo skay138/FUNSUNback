@@ -48,6 +48,7 @@ INSTALLED_APPS = [
 
     'drf_yasg',
 
+
     ##My APPS
     'account',
     'funding',
@@ -55,6 +56,7 @@ INSTALLED_APPS = [
     'follow',
     'report',
 ]
+
 
 AUTH_USER_MODEL = 'account.Account'
 
@@ -125,6 +127,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -213,3 +216,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
+
+if DEBUG:
+    MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
+    DEBUG_TOOLBAR_CONFIG = {"SHOW_TOOLBAR_CALLBACK": lambda request: DEBUG}
+    INSTALLED_APPS += ('debug_toolbar',)
+    INTERNAL_IPS = ['127.0.0.1']  # 또는 적절한 IP 주소 추가
+
+

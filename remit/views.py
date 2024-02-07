@@ -11,7 +11,7 @@ from django.http import response
 from .models import Remit, Account, Funding
 # Create your views here.
 
-from config.util import Verify, paging_remit
+from config.util import Verify, manual_pagination
 from rest_framework_simplejwt.authentication import JWTStatelessUserAuthentication
 from django.utils import timezone
 
@@ -36,12 +36,10 @@ class RemitPutSerializer(serializers.ModelSerializer):
 class RemitSerializer(serializers.ModelSerializer):
 
     def getAuthor(self, obj):
-        id = obj.author.id
-        author = Account.objects.get(id = id)
-        image = author.image.url if author.image else None
+        image = obj.author.image.url if obj.author.image else None
         profile = {
-            "id" : author.id,
-            "username" : author.username,
+            "id" : obj.author.id,
+            "username" : obj.author.username,
             "image" : image
         }
         return profile
@@ -54,7 +52,6 @@ class RemitSerializer(serializers.ModelSerializer):
         fields = ['id','message', 'author','created_on']
 
 
-
 class RemitView(APIView, JWTStatelessUserAuthentication):
     id = openapi.Parameter('id', openapi.IN_QUERY, type=openapi.TYPE_STRING, default=1)
     page = openapi.Parameter('page', openapi.IN_QUERY, type=openapi.TYPE_STRING, default=1)
@@ -62,8 +59,8 @@ class RemitView(APIView, JWTStatelessUserAuthentication):
     @swagger_auto_schema(manual_parameters=[id, page], operation_description='GET Remits INFO')
     def get(self, request):
         funding = Verify.funding(request=request)
-        remits = Remit.objects.filter(funding=funding)
-        paging = paging_remit(request=request, list=remits)
+        remits = funding.remit_funding.all().select_related('author')
+        paging = manual_pagination(request=request, items=remits, per_page=8)
         serializer = RemitSerializer(paging, many=True)
         return response.JsonResponse(serializer.data,safe=False, status=200)
 

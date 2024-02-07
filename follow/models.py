@@ -9,13 +9,13 @@ class Follow(models.Model):
     follower = models.ForeignKey(
         Account,
         on_delete=models.CASCADE,
-        related_name='follower'
+        related_name='follower_account'
         )
     #내가 팔로우 하는 사람들
     followee = models.ForeignKey(
         Account,
         on_delete=models.CASCADE,
-        related_name='followee'
+        related_name='followee_account'
         )
 
     def following(self):

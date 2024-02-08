@@ -48,6 +48,8 @@ INSTALLED_APPS = [
 
     'drf_yasg',
 
+    'redis',
+
 
     ##My APPS
     'account',
@@ -77,6 +79,11 @@ SWAGGER_SETTINGS = {
             'in':'header'
         }
     }
+}
+
+REDIS_CACHE = {
+    'UPDATE_INTERVAL' : 5,
+    'EXPIRATION_TIME' : 24 * 60 * 60
 }
 
 SIMPLE_JWT = {
@@ -127,7 +134,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -154,23 +160,26 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'funsun',
-#         'USER': 'funsun',
-#         'PASSWORD': 'eatPizza247!',
-#         'HOST': 'funsun.cjxzg8p3eeqb.eu-north-1.rds.amazonaws.com',
-#         'PORT': '3306',
-#     }
-# }
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'funsun',
+        'USER': 'funsun',
+        'PASSWORD': 'funsun',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+        },
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 
 # Password validation

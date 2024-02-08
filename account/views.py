@@ -26,7 +26,7 @@ from config.util import Verify, OverwriteStorage, image_upload
 
 
 class KakaoLogin(APIView):
-    @swagger_auto_schema(operation_description='testing', request_body=KakaoRequestSerializer)
+    @swagger_auto_schema(operation_description='API for KakaoLogin', request_body=KakaoRequestSerializer)
     def post(self, request):
         try:
             token = request.data['accessToken']

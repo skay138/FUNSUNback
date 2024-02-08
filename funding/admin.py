@@ -9,7 +9,7 @@ class FundingAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'content', 'author', 'author_id', 'goal_amount', 'current_amount','expire_on','is_transmitted','public','image_tag', 'review', 'review_image_tag', 'updated_on')
     list_display_links=('title',)
     list_filter = ['is_transmitted']
-    search_fields = ['id','author__id']
+    search_fields = ['id','author__id', 'title']
     readonly_fields = ['image_tag', 'review_image_tag']
 
     def image_tag(self, obj):

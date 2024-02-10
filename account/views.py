@@ -12,6 +12,7 @@ from rest_framework_simplejwt.authentication import JWTStatelessUserAuthenticati
 
 #model/serializer
 from .models import Account
+from django.db.models import Count
 from .serializers import AccountSerializer, MyProfileSerializer,ProfileSerializer, KakaoRequestSerializer
 
 #http
@@ -138,14 +139,17 @@ class AccountView(APIView, JWTStatelessUserAuthentication):
         except:
             return response.JsonResponse({'detail':"Bad request"}, status=400)
         
-
+from django.core.serializers import serialize
 class ProfileSearch(APIView, JWTStatelessUserAuthentication):
     username = openapi.Parameter('username', openapi.IN_QUERY, type=openapi.TYPE_STRING, default='admin')
     @swagger_auto_schema(manual_parameters=[username], operation_description='SEARCH USERS')
     def get(self, request):
         Verify.jwt(self, request=request)
-        profile = Account.objects.filter(username__contains = request.GET.get('username'))
-        serializer = ProfileSerializer(profile, many=True)
+        username = request.GET.get('username')
+        profiles = Account.objects.filter(username__contains=username)
+       
+        serializer = ProfileSerializer(profiles, many=True)
+ 
         return response.JsonResponse(serializer.data, safe=False, status=200)
     
 

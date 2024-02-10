@@ -4,6 +4,8 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from datetime import timedelta
 
+
+
 # Create your models here.
 
 class Funding(models.Model):
@@ -44,4 +46,19 @@ class Funding(models.Model):
     def __str__(self) -> str:
         return self.title
     
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.update_cache_if_public(self.public)
+    
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        self.update_cache_if_public(self.public)
+            
+    
+    def update_cache_if_public(public):
+        if public:
+            from funding.cache import PublicFundingsCache
+            cache = PublicFundingsCache()
+            cache.update_cached_data()
+            print('done')
 

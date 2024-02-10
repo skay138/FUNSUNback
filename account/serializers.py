@@ -5,42 +5,16 @@ from follow.models import Follow
 
 class ProfileSerializer(serializers.ModelSerializer):
 
-    def getFollower(self, obj):
-        id = obj.id
-        follwer = Follow.objects.filter(followee = id).count()
-        return follwer
-
-    def getFollowee(self, obj):
-        id = obj.id
-        followee = Follow.objects.filter(follower = id).count()
-        return followee
-
-    follower = serializers.SerializerMethodField('getFollower')
-    followee = serializers.SerializerMethodField('getFollowee')
-
     class Meta :
             model = Account
-            fields = ['id', 'email', 'birthday', 'username', 'image', 'follower', 'followee']
+            fields = ['id', 'email', 'birthday', 'username', 'image', 'follower_count', 'followee_count']
 
 
 class MyProfileSerializer(serializers.ModelSerializer):
 
-    def getFollower(self, obj):
-        id = obj.id
-        follwer = Follow.objects.filter(followee = id).count()
-        return follwer
-
-    def getFollowee(self, obj):
-        id = obj.id
-        followee = Follow.objects.filter(follower = id).count()
-        return followee
-
-    follower = serializers.SerializerMethodField('getFollower')
-    followee = serializers.SerializerMethodField('getFollowee')
-
     class Meta :
             model = Account
-            fields = ['id', 'email', 'birthday', 'username', 'image', 'follower', 'followee', 'bank_account']
+            fields = ['id', 'email', 'birthday', 'username', 'image', 'follower_count', 'followee_count', 'bank_account']
 
 
 class AccountSerializer(serializers.ModelSerializer):

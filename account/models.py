@@ -46,14 +46,16 @@ class Account(AbstractBaseUser, PermissionsMixin):
     ##custom
     bank_account = models.CharField(max_length=30, null=True)
     birthday = models.CharField(max_length=4, null=True)
-    username = models.CharField(max_length=20)
-    gender = models.CharField(max_length=6)
-    age_range = models.CharField(max_length=5)
+    username = models.CharField(max_length=20, db_index=True)
+    gender = models.CharField(max_length=6, null=True)
+    age_range = models.CharField(max_length=5, null=True)
     image = models.ImageField(
         upload_to='profile_image/',
         null=True
     )
-
+    
+    follower_count = models.IntegerField(default=0)
+    followee_count = models.IntegerField(default=0)
 
     class Meta:
         db_table = 'account'

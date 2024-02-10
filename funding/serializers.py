@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Funding, Account
+from .models import Funding
 class FundingDetailSerializer(serializers.ModelSerializer):
 
     def getAuthor(self, obj):

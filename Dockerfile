@@ -19,6 +19,7 @@ RUN apt-get install git -y
 
 RUN mkdir /code
 
+COPY version.txt .
 
 RUN git clone -b practice https://github.com/skay138/FUNSUNback.git /code
 
@@ -30,11 +31,10 @@ WORKDIR /code
 # RUN pip3 install --upgrade pip
 RUN pip3 install -r requirements.txt
 
+RUN python manage.py collectstatic --noinput
+
 #uwsgi 설치
 RUN pip3 install uwsgi
 
 # 시간대 맞추기
 RUN ln -sf /usr/share/zoneinfo/Asia/Seoul /etc/localtime
-
-# collectstatic 실행
-CMD ["python", "manage.py", "collectstatic", "--no-input"]

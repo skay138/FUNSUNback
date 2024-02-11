@@ -37,6 +37,6 @@ RUN pip3 install uwsgi
 RUN ln -sf /usr/share/zoneinfo/Asia/Seoul /etc/localtime
 
 # collectstatic 실행
-CMD ["python code/manage.py collectstatic --no-input"]
+CMD ["python manage.py collectstatic --no-input"]
 
 #RUN python /app/manage.py collectstatic --noinput

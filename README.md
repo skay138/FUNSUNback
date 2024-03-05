@@ -14,7 +14,7 @@ http://projectsekai.kro.kr:5000/swagger/ 에서 API를 확인할 수 있습니�
 
 ## 📖 상세 내용
 
-![포트폴리오_1-01](https://github.com/skay138/FUNSUNback/assets/102957619/9254f68e-4307-452d-ac70-45be0c301917)
+![FUNSUN~1](https://github.com/skay138/FUNSUNback/assets/102957619/b18fe75e-3c27-49e1-a633-0ed02fb626e5)
 ![포트폴리오_1-02](https://github.com/skay138/FUNSUNback/assets/102957619/4b8f1861-ea35-4705-bfeb-df8f21555aea)
 ![포트폴리오_1-03](https://github.com/skay138/FUNSUNback/assets/102957619/089e534b-8de0-49eb-9976-73dca0ec775a)
 ![포트폴리오_1-04](https://github.com/skay138/FUNSUNback/assets/102957619/40df13fd-9b01-415c-8145-e75c29a59c18)
